@@ -1,7 +1,0 @@
-node_modules/
-.env
-prisma/migrations/
-dist/
-build/
-.vscode/
-.DS_Store
