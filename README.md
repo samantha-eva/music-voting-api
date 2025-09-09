@@ -35,9 +35,15 @@ cd Rebirth-Society-School-Project
 
 ```cp .env .env.local```
 
-## Installation de dépendance
+## docker compose up -d --build
 
 ```
-composer install
-composer require stripe/stripe-php
+docker compose up -d --build
+```
+---
+
+## Appliquer les migrations Prisma
+```
+docker compose exec api npx prisma migrate dev --name init
+
 ```
