@@ -23,12 +23,21 @@ Le projet utilise **Node.js**, **Express**, **Prisma**, et une base de données 
 
 ## 🛠️ Installation
 
-### 1. Cloner le dépôt
+1. **Cloner le projet via SSH :**  
 ```bash
 git clone git@github.com:samantha-eva/music-voting-api.git
-cd music-voting-api``
+cd Rebirth-Society-School-Project
+```
 
-### 2. Configurer les variables d’environnement
-Copier le fichier `.env.example` vers `.env` :  
-```bash
-cp .env.example .env
+---
+
+## Configurer les variables d’environnement
+
+```cp .env .env.local```
+
+## Installation de dépendance
+
+```
+composer install
+composer require stripe/stripe-php
+```
