@@ -26,4 +26,4 @@ Le projet utilise **Node.js**, **Express**, **Prisma**, et une base de données 
 ### 1. Cloner le dépôt
 ```bash
 git clone git@github.com:samantha-eva/music-voting-api.git
-cd music-voting-api```
+cd music-voting-api
