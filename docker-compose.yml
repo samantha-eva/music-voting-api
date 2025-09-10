@@ -9,11 +9,20 @@ services:
       - db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - music
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   api:
     build: .
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     volumes:
       - .:/app
       - /app/node_modules
@@ -25,6 +34,14 @@ services:
       CRON_ENABLED: ${CRON_ENABLED}
     ports:
       - "3000:3000"
+    networks:
+      - music
+    command: sh -c "npx prisma generate & npx prisma db push --accept-data-loss && node ./src/app.js"
+
 
 volumes:
   db_data:
+
+networks:
+  music:
+    driver: bridge
