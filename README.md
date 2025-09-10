@@ -26,7 +26,7 @@ Le projet utilise **Node.js**, **Express**, **Prisma**, et une base de données 
 1. **Cloner le projet via SSH :**  
 ```bash
 git clone git@github.com:samantha-eva/music-voting-api.git
-cd Rebirth-Society-School-Project
+cd music-voting-api
 ```
 
 ---
