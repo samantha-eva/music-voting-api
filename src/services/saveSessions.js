@@ -1,6 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-
+const prisma = require('../config/database');
 /**
  * Sauvegarde les sessions dans la base de données
  * Supprime toutes les sessions dont la date est différente de "date"

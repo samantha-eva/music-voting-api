@@ -1,5 +1,5 @@
 const authService = require('../services/auth')
-const prisma = require('@prisma/client').PrismaClient ? new (require('@prisma/client').PrismaClient)() : null
+const prisma = require('../config/database');
 const jwt = require('jsonwebtoken')
 const { sendMail } = require('../config/email')
 
