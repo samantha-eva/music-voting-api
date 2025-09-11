@@ -42,8 +42,21 @@ docker compose up -d --build
 ```
 ---
 
-## Appliquer les migrations Prisma
+## Appliquer les migrations Prisma (appliquer ton schema à la BDD)
 ```
 docker compose exec api npx prisma migrate dev --name init
 
 ```
+---
+
+## Créer des utilisateurs de test
+```
+node prisma/seed.js
+
+```
+
+---
+
+## Executer le fichier test de scrapping
+
+node src/services/testScraping.js

@@ -1,19 +1,25 @@
-# Dockerfile minimal pour Node.js + Prisma
+# Dockerfile Node.js + Prisma + Puppeteer
 FROM node:20-slim
 
 # Définir le répertoire de travail
 WORKDIR /app
 
-# Installer les paquets système nécessaires pour certaines dépendances Node
-RUN apt-get update && apt-get install -y python3 g++ make && rm -rf /var/lib/apt/lists/*
+# Installer les paquets système nécessaires pour Puppeteer et Node
+RUN apt-get update && apt-get install -y \
+    python3 g++ make curl unzip \
+    libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libx11-xcb1 \
+    libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2 libpangocairo-1.0-0 \
+    libxshmfence1 libxrender1 libxext6 libxfixes3 fonts-liberation \
+    libxkbcommon0 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copier uniquement les fichiers nécessaires pour installer les dépendances
-COPY package.json package-lock.json* ./
+# Copier package.json et package-lock.json
+COPY package*.json ./
 
-# Installer les dépendances
+# Installer toutes les dépendances Node
 RUN npm install
 
-# Copier tout le reste du code
+# Copier le reste du code
 COPY . .
 
 # Générer le client Prisma
