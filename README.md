@@ -47,16 +47,7 @@ docker compose up -d --build
 docker compose exec api npx prisma migrate dev --name init
 
 ```
----
-
-## Créer des utilisateurs de test
-```
-node prisma/seed.js
-
-```
 
 ---
-
-## Executer le fichier test de scrapping
-
-node src/services/testScraping.js
+## Appliquer le  seed
+docker compose exec api node prisma/seed.js
