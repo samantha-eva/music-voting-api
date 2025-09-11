@@ -47,3 +47,7 @@ docker compose up -d --build
 docker compose exec api npx prisma migrate dev --name init
 
 ```
+
+---
+## Appliquer le  seed
+docker compose exec api node prisma/seed.js
