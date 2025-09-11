@@ -8,6 +8,8 @@ const app = express()
 // Importer les routes 
 const authRoutes = require("./routes/auth")
 const sessionRoutes = require("./routes/sessions")
+const tracksRoutes = require("./routes/tracks")
+
 
 
 app.use(express.json())
@@ -19,7 +21,8 @@ app.get("/", (req, res) => {
 
 // Monter les routes sous /api/auth
 app.use('/api/auth', authRoutes)
-app.use("/api/sessions", sessionRoutes);
+app.use("/api/sessions", sessionRoutes)
+app.use('/api/tracks', tracksRoutes)
 
 app.listen(3000, () => {
   console.log("API listening on port 3000")
