@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../config/database');
 
 // 1️⃣ Lister toutes les sessions (optionnel : filtrer par date via query)
 const getSessions = async (req, res) => {

@@ -33,7 +33,7 @@ cd music-voting-api
 
 ## Configurer les variables d’environnement
 
-```cp .env .env.local```
+```cp .env``
 
 ## docker compose up -d --build
 
@@ -50,4 +50,21 @@ docker compose exec api npx prisma migrate dev --name init
 
 ---
 ## Appliquer le  seed
+```
 docker compose exec api node prisma/seed.js
+
+```
+
+---
+## Executer le script de  test de scrapping
+```
+docker exec -it name_container node testScraping.js
+
+```
+
+---
+## Voir la base de données
+```
+docker compose exec db psql -U postgres -d name_database
+
+```

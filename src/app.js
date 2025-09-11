@@ -9,8 +9,9 @@ const app = express()
 const authRoutes = require("./routes/auth")
 const sessionRoutes = require("./routes/sessions")
 const tracksRoutes = require("./routes/tracks")
-
-
+const { startScrapingCron } = require('./jobs/scraper');
+// Démarrer le cron
+startScrapingCron();
 
 app.use(express.json())
 

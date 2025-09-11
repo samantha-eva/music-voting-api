@@ -3,8 +3,8 @@ const { fetchCourses } = require('../services/scraping');
 const { saveCourses } = require('../services/saveSessions');
 
 const startScrapingCron = () => {
-  cron.schedule('45 8 * * *', async () => { // tous les jours à 08:45
-    console.log('⏰ Cron job: lancement du scraping à 8h45');
+  cron.schedule('13 0 * * *', async () => { // tous les jours à 00:05
+    console.log('⏰ Cron job: lancement du scraping à minuit 5');
 
     try {
       const courses = await fetchCourses();
