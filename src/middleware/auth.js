@@ -8,7 +8,7 @@ function authMiddleware(req, res, next) {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET)
-    req.user = payload
+    req.user = payload // userId et email
     next()
   } catch (err) {
     return res.status(403).json({ error: 'Token invalide' })
