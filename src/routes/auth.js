@@ -1,10 +1,13 @@
 const express = require('express')
 const router = express.Router()
-const { requestLogin, getMe, refreshToken } = require('../controllers/auth')
+const { requestLogin, getMe, refreshToken, loginWithToken } = require('../controllers/auth')
 const authMiddleware = require('../middleware/auth')
 
 // POST /api/auth/request-login → génère directement le JWT
 router.post('/request-login', requestLogin)
+
+// POST /api/auth/login/:token
+router.post('/login/:token', loginWithToken)
 
 // GET /api/auth/me (protégé)
 router.get('/me', authMiddleware, getMe)
