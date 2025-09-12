@@ -25,7 +25,7 @@ async function createUserFromPreRegistered(preUser) {
 }
 
 // Génère un JWT pour un utilisateur
-function generateToken(user, expiresIn = '7d') {
+function generateToken(user, expiresIn = '365d') {
   return jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn })
 }
 
