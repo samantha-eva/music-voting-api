@@ -1,13 +1,13 @@
-const express = require('express');
-const { addVote } = require('../controllers/votes');
-const { authenticateUser } = require('../middlewares/auth');
+const express = require("express");
+const { addVote, getMyVotes } = require("../controllers/votes");
+const { authMiddleware } = require("../middleware/auth");
 
 const router = express.Router();
 
-// POST /api/votes  Voter pour un morceau
-router.post('/', authenticateUser, addVote);
-
-// GET /api/votes/my-votes
-router.get("/my-votes", authenticateUser, getMyVotes);
+router.post("/", authMiddleware, addVote);
+router.get("/my-votes", authMiddleware, getMyVotes);
 
 module.exports = router;
+
+
+

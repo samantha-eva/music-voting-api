@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
 app.use('/api/auth', authRoutes)
 app.use("/api/sessions", sessionRoutes)
 app.use('/api/tracks', tracksRoutes)
-app.use('/api/votes', votesRoutes)
+app.use("/api/votes", votesRoutes)
 
 app.listen(3000, () => {
   console.log("API listening on port 3000")
