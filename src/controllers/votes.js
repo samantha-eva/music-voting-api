@@ -3,9 +3,10 @@ const prisma = new PrismaClient();
 
 // 🗳️ POST /api/votes - Ajouter un vote
 const addVote = async (req, res) => {
+  console.log("test");
   try {
     const { trackId, sessionId } = req.body;
-
+    
     if (!trackId || !sessionId) {
       return res
         .status(400)
@@ -53,7 +54,7 @@ const addVote = async (req, res) => {
     res.status(500).json({ message: "Erreur lors de l'ajout du vote" });
   }
 };
-
+/*
 // 📋 GET /api/votes/my-votes - Récupérer mes votes du jour
 const getMyVotes = async (req, res) => {
   try {
@@ -85,7 +86,7 @@ const getMyVotes = async (req, res) => {
       .json({ message: "Erreur lors de la récupération des votes" });
   }
 };
-
-module.exports = { addVote, getMyVotes };
+*/
+module.exports = { addVote };
 
 

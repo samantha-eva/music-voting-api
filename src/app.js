@@ -11,10 +11,11 @@ const sessionRoutes = require("./routes/sessions")
 const tracksRoutes = require("./routes/tracks")
 const { startScrapingCron } = require('./jobs/scraper');
 const votesRoutes = require("./routes/votes");
-// Démarrer le cron
-startScrapingCron();
 
 app.use(express.json())
+
+// Démarrer le cron
+startScrapingCron();
 
 // Route racine
 app.get("/", (req, res) => {
