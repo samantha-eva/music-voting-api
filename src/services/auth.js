@@ -35,7 +35,7 @@ function verifyToken(token) {
 }
 
 // Crée un token magique pour login
-async function createLoginToken(userId, expiresInMinutes = 15) {
+async function createLoginToken(userId, expiresInMinutes = 300) {
   const token = crypto.randomBytes(32).toString('hex')
   const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000)
 

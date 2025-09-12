@@ -1,6 +1,6 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { authenticateUser } from '../middlewares/auth.js'; // si tu as un middleware pour req.user
+const { authenticateUser } = require("../middlewares/auth.js"); // ton middleware JWT
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -58,35 +58,35 @@ const addVote = async (req, res) => {
 // Middleware d’authentification pour que req.user soit défini
 router.post('/', authenticateUser, addVote);
 
-export default router;
 
-
-/*
-const myVotesToday = async (req, res) => {
+// GET /api/votes/my-votes
+const getMyVotes = async (req, res) => {
     try {
-        // Début et fin du jour actuel
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
 
         const endOfDay = new Date();
         endOfDay.setHours(23, 59, 59, 999);
 
-        const myVotes = await prisma.vote.findMany({
+        const votes = await prisma.vote.findMany({
             where: {
                 userId: req.user.id,
-                votedAt: {
-                    gte: startOfDay,
-                    lt: endOfDay
-                }
-            }
+            votedAt: {
+                gte: startOfDay,
+                lt: endOfDay,
+            },
+        },
+        include: {
+            track: true,   // infos du morceau
+            session: true, // infos de la session
+        },
         });
 
-        res.json(myVotes);
+        res.json(votes);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Erreur lors de la récupération de vos votes' });
+        res.status(500).json({ message: "Erreur lors de la récupération des votes" });
     }
 };
-*/
 
-module.exports = { addVote }
+module.exports = { addVote, getMyVotes }
