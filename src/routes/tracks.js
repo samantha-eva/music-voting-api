@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const tracksController = require('../controllers/tracks');
-const verifyJWT = require('../middleware/auth'); // ← PAS de {}
+const verifyJWT = require('../middleware/auth');
 
 // Récupérer les morceaux d'une session
 router.get('/session/:sessionId', tracksController.getTracksBySession);

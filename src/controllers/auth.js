@@ -30,11 +30,13 @@ async function requestLogin(req, res) {
   const authToken = await authService.createLoginToken(user.id)
 
   // Envoyer le token par email
+
   await sendMail({
     to: user.email,
     subject: 'Votre lien de connexion',
-    text: `Cliquez ici pour vous connecter : ${process.env.APP_URL}/api/auth/login/${authToken.token}`,
+    text: `Cliquez ici pour vous connecter : ${process.env.APP_URL}/session.html?token=${authToken.token}`,
   })
+
 
   res.json({ message: 'Email de connexion envoyé ! Vérifiez votre boîte de réception.' })
 }
@@ -94,7 +96,7 @@ async function loginWithToken(req, res) {
     const jwtToken = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '365d' }
     )
 
     res.json({ token: jwtToken, user })
