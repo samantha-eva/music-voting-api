@@ -1,153 +1,381 @@
-const welcome = document.getElementById("welcome");
-const tableBody = document.querySelector("#sessions-table tbody");
+ // Variables globales
+        let sessions = [];
+        let currentPage = 1;
+        const itemsPerPage = 3;
+        let userVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
+        let musicsBySession = {}; // Cache pour les musiques par session
+        
+        // Récupérer le token d'authentification (supposé être stocké dans localStorage)
+        const getToken = () => {
+            return localStorage.getItem('token') || '';
+        };
 
-let jwtToken = localStorage.getItem("token");
-const params = new URLSearchParams(window.location.search);
-const magicToken = params.get("token");
+        // Charger les sessions depuis l'API
+        async function loadSessions() {
+            try {
+                const token = getToken();
+                if (!token) {
+                    showToast('Veuillez vous connecter pour accéder aux sessions', 'warning');
+                    return;
+                }
 
-// Décode JWT côté front
-function parseJwt(token) {
-  try {
-    return JSON.parse(atob(token.split('.')[1]));
-  } catch {
-    return null;
-  }
-}
+                const response = await fetch("http://localhost:3000/api/sessions", {
+                    headers: { 
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
 
-// Vérifie si le JWT est expiré
-function isTokenExpired(token) {
-  const payload = parseJwt(token);
-  if (!payload || !payload.exp) return true;
-  return payload.exp * 1000 < Date.now();
-}
+                if (!response.ok) {
+                    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+                }
 
-// Charger les sessions
-async function loadSessions(token) {
-  try {
-    const res = await fetch("http://localhost:3000/api/sessions", {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const sessions = await res.json();
-    tableBody.innerHTML = "";
-
-    sessions.forEach(session => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${session.id}</td>
-        <td>${session.subject}</td>
-        <td>${session.teacher}</td>
-        <td>${session.promotion}</td>
-        <td>${session.classroom}</td>
-        <td>
-          <button onclick="showSongForm(${session.id})">Soumettre chanson</button>
-          <button onclick="loadSongs(${session.id})">Voir chansons</button>
-          <div id="songs-${session.id}" class="song-list"></div>
-        </td>
-      `;
-      tableBody.appendChild(row);
-    });
-  } catch (err) {
-    console.error(err);
-    welcome.textContent = "❌ Impossible de charger les sessions.";
-    welcome.style.color = "red";
-  }
-}
-
-// Afficher le formulaire pour soumettre une chanson
-function showSongForm(sessionId) {
-  const container = document.getElementById(`songs-${sessionId}`);
-  container.innerHTML = `
-    <input type="text" id="song-title-${sessionId}" placeholder="Titre de la chanson"><br>
-    <input type="text" id="song-artist-${sessionId}" placeholder="Nom de l'artiste"><br>
-    <button onclick="submitSong(${sessionId})">Envoyer</button>
-  `;
-}
-
-// Soumettre la chanson
-function submitSong(sessionId) {
-  if (isTokenExpired(jwtToken)) {
-    alert("Votre session a expiré. Veuillez vous reconnecter via le lien magique.");
-    return;
-  }
-
-  const title = document.getElementById(`song-title-${sessionId}`).value.trim();
-  const artist = document.getElementById(`song-artist-${sessionId}`).value.trim();
-  if (!title || !artist) return alert("Veuillez remplir le titre et l'artiste.");
-
-  const payload = { title, artist, sessionId };
-
-  fetch("http://localhost:3000/api/tracks", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${jwtToken}`
-    },
-    body: JSON.stringify(payload)
-  })
-  .then(res => {
-    if (!res.ok) throw new Error(`Erreur ${res.status}`);
-    return res.json();
-  })
-  .then(() => {
-    document.getElementById(`song-title-${sessionId}`).value = "";
-    document.getElementById(`song-artist-${sessionId}`).value = "";
-    loadSongs(sessionId);
-  })
-  .catch(err => {
-    console.error("Erreur lors de l'envoi de la chanson:", err);
-    alert("Erreur lors de l'envoi de la chanson.");
-  });
-}
-
-// Charger les chansons
-function loadSongs(sessionId) {
-  fetch(`http://localhost:3000/api/tracks/session/${sessionId}`, {
-    headers: { Authorization: `Bearer ${jwtToken}` }
-  })
-  .then(res => res.json())
-  .then(songs => {
-    const container = document.getElementById(`songs-${sessionId}`);
-    if (!songs || songs.length === 0) {
-      container.innerHTML = "<em>Aucune chanson pour cette session.</em>";
-    } else {
-      container.innerHTML = "<ul>" + songs.map(s => `<li>${s.title} - ${s.artist}</li>`).join("") + "</ul>";
-    }
-  })
-  .catch(err => {
-    console.error(err);
-    document.getElementById(`songs-${sessionId}`).innerHTML = "<em>Impossible de charger les chansons.</em>";
-  });
-}
-
-// Gestion du JWT / token magique
-function init() {
-  if (jwtToken && !isTokenExpired(jwtToken)) {
-    welcome.textContent = "✅ Déjà connecté";
-    welcome.style.color = "green";
-    loadSessions(jwtToken);
-  } else if (magicToken) {
-    fetch(`http://localhost:3000/api/auth/login/${magicToken}`, { method: "POST" })
-      .then(res => res.json())
-      .then(data => {
-        if (data.token && data.user) {
-          jwtToken = data.token;
-          localStorage.setItem("token", jwtToken);
-          welcome.textContent = `✅ Connecté en tant que ${data.user.email}`;
-          welcome.style.color = "green";
-          loadSessions(jwtToken);
-        } else {
-          welcome.textContent = "❌ Token invalide ou expiré.";
-          welcome.style.color = "red";
+                sessions = await response.json();
+                
+                // Masquer le spinner et afficher le tableau
+                document.getElementById('loadingSpinner').classList.add('d-none');
+                document.querySelector('.table').classList.remove('d-none');
+                
+                // Mettre à jour l'affichage
+                renderTable();
+                setupPagination();
+                populateSessionSelect();
+                
+            } catch (error) {
+                console.error('Erreur lors du chargement des sessions:', error);
+                showToast('Erreur lors du chargement des sessions: ' + error.message, 'warning');
+            }
         }
-      })
-      .catch(() => {
-        welcome.textContent = "❌ Erreur serveur.";
-        welcome.style.color = "red";
-      });
-  } else {
-    welcome.textContent = "❌ Aucun token fourni. Connectez-vous depuis le lien magique.";
-    welcome.style.color = "red";
-  }
-}
 
-init();
+        // Charger les musiques pour une session spécifique
+        async function loadMusicsForSession(sessionId) {
+            // Si les musiques sont déjà chargées, on les affiche directement
+            if (musicsBySession[sessionId]) {
+                displayMusics(sessionId, musicsBySession[sessionId]);
+                return;
+            }
+
+            try {
+                const token = getToken();
+                if (!token) {
+                    showToast('Veuillez vous connecter pour charger les musiques', 'warning');
+                    return;
+                }
+
+                // Afficher le spinner de chargement
+                const musicListContainer = document.getElementById(`music-list-${sessionId}`);
+                if (musicListContainer) {
+                    musicListContainer.innerHTML = `
+                        <div class="music-loading">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Chargement...</span>
+                            </div>
+                            <span>Chargement des musiques...</span>
+                        </div>
+                    `;
+                }
+
+                const response = await fetch(`http://localhost:3000/api/tracks/session/${sessionId}`, {
+                    headers: { 
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+                }
+
+                const musics = await response.json();
+                
+                // Stocker les musiques pour cette session
+                musicsBySession[sessionId] = musics;
+                
+                // Afficher les musiques
+                displayMusics(sessionId, musics);
+
+            } catch (error) {
+                console.error('Erreur lors du chargement des musiques:', error);
+                // Afficher un message d'erreur dans le conteneur de la session
+                const musicListContainer = document.getElementById(`music-list-${sessionId}`);
+                if (musicListContainer) {
+                    musicListContainer.innerHTML = `
+                        <div class="alert alert-warning">
+                            Impossible de charger les musiques: ${error.message}
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Afficher les musiques pour une session
+        function displayMusics(sessionId, musics) {
+            const container = document.getElementById(`music-list-${sessionId}`);
+            if (!container) return;
+
+            if (!musics || musics.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">Aucune musique pour cette session.</div>';
+            } else {
+                container.innerHTML = musics.map(music => `
+                    <div class="music-item">
+                        <div class="music-info">
+                            <div class="music-title">${music.title}</div>
+                            <div class="music-artist">${music.artist}</div>
+                        </div>
+                        <div>
+                            <span class="vote-badge">${music.votes || 0} votes</span>
+                            <button class="btn btn-sm btn-primary vote-btn ms-2" 
+                                    aria-label="Voter pour ${music.title} de ${music.artist}">
+                                <i class="bi bi-hand-thumbs-up me-1" aria-hidden="true"></i> Voter
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function addMusicToSession(sessionId, title, artist) {
+            try {
+                const token = getToken();
+                if (!token) {
+                    showToast('Veuillez vous connecter pour ajouter une musique', 'warning');
+                    return false;
+                }
+
+                const payload = { title, artist, sessionId };
+
+                const response = await fetch("http://localhost:3000/api/tracks", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+                }
+
+                const newMusic = await response.json();
+                
+                // Ajouter la nouvelle musique au cache
+                if (musicsBySession[sessionId]) {
+                    musicsBySession[sessionId].push(newMusic);
+                    // Rafraîchir l'affichage
+                    displayMusics(sessionId, musicsBySession[sessionId]);
+                } else {
+                    // Si le cache n'existe pas encore, on le crée
+                    musicsBySession[sessionId] = [newMusic];
+                    // Rafraîchir l'affichage
+                    displayMusics(sessionId, musicsBySession[sessionId]);
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Erreur lors de l\'ajout de la musique:', error);
+                showToast('Erreur lors de l\'ajout de la musique: ' + error.message, 'warning');
+                return false;
+            }
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Charger les sessions depuis l'API
+            loadSessions();
+            setupEventListeners();
+        });
+
+        // Remplir la liste déroulante des sessions
+        function populateSessionSelect(selectedSessionId = null) {
+            const sessionSelect = document.getElementById('sessionSelect');
+            sessionSelect.innerHTML = '<option value="" disabled selected>Choisir une session</option>';
+            
+            sessions.forEach(session => {
+                const option = document.createElement('option');
+                option.value = session.id;
+                option.textContent = `${session.id} - ${session.subject}`;
+                
+                if (selectedSessionId && session.id === selectedSessionId) {
+                    option.selected = true;
+                }
+                
+                sessionSelect.appendChild(option);
+            });
+        }
+
+        // Rendu du tableau
+        function renderTable() {
+            const tbody = document.getElementById('sessionTableBody');
+            tbody.innerHTML = '';
+            
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const paginatedSessions = sessions.slice(start, end);
+            
+            paginatedSessions.forEach(session => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><span class="badge bg-primary">${session.id}</span></td>
+                    <td><strong>${session.subject}</strong></td>
+                    <td>${session.teacher}</td>
+                    <td><span class="badge bg-light text-dark">${session.promotion}</span></td>
+                    <td><span class="badge bg-light text-dark">${session.classroom}</span></td>
+                    <td><span class="badge bg-success">${musicsBySession[session.id] ? musicsBySession[session.id].length : 0}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#collapse${session.id}" aria-expanded="false" aria-controls="collapse${session.id}">
+                            <i class="bi bi-eye me-1" aria-hidden="true"></i> Voir
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+                
+                // Ligne de collapse
+                const collapseRow = document.createElement('tr');
+                collapseRow.className = 'collapse-row';
+                collapseRow.innerHTML = `
+                    <td colspan="7" class="p-0">
+                        <div class="collapse" id="collapse${session.id}">
+                            <div class="collapse-content">
+                                <div class="section-header">
+                                    <h5 class="section-title">Liste des musiques</h5>
+                                    <button class="btn btn-sm btn-success" onclick="openSubmitMusicModal(${session.id})" aria-label="Ajouter une musique à la session ${session.subject}">
+                                        <i class="bi bi-plus-circle me-1" aria-hidden="true"></i> Ajouter
+                                    </button>
+                                </div>
+                                <div id="music-list-${session.id}" class="music-list">
+                                    <div class="music-loading">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">Chargement...</span>
+                                        </div>
+                                        <span>Cliquez sur "Voir" pour charger les musiques</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(collapseRow);
+                
+                // Ajouter un écouteur d'événement pour charger les musiques lorsque le collapse est ouvert
+                const collapseElement = document.getElementById(`collapse${session.id}`);
+                collapseElement.addEventListener('shown.bs.collapse', function () {
+                    loadMusicsForSession(session.id);
+                });
+            });
+        }
+
+        // Configuration de la pagination
+        function setupPagination() {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            
+            const totalPages = Math.ceil(sessions.length / itemsPerPage);
+            
+            // Bouton précédent
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1})" aria-label="Page précédente">Précédent</a>`;
+            pagination.appendChild(prevLi);
+            
+            // Numéros de page
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i})" aria-label="Page ${i}">${i}</a>`;
+                pagination.appendChild(li);
+            }
+            
+            // Bouton suivant
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1})" aria-label="Page suivante">Suivant</a>`;
+            pagination.appendChild(nextLi);
+        }
+
+        // Changement de page
+        function changePage(page) {
+            const totalPages = Math.ceil(sessions.length / itemsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                renderTable();
+                setupPagination();
+            }
+        }
+
+        // Configuration des écouteurs d'événements
+        function setupEventListeners() {
+            document.getElementById('submitMusicBtn').addEventListener('click', async function() {
+                const title = document.getElementById('musicTitle').value;
+                const artist = document.getElementById('musicArtist').value;
+                const sessionId = parseInt(document.getElementById('sessionSelect').value);
+                
+                if (title && artist && sessionId) {
+                    // Désactiver le bouton pendant le traitement
+                    const submitBtn = document.getElementById('submitMusicBtn');
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> En cours...';
+                    
+                    // Appeler l'API pour ajouter la musique
+                    const success = await addMusicToSession(sessionId, title, artist);
+                    
+                    // Réactiver le bouton
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Soumettre';
+                    
+                    if (success) {
+                        // Fermer la modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('submitMusicModal'));
+                        modal.hide();
+                        
+                        // Réinitialiser le formulaire
+                        document.getElementById('submitMusicForm').reset();
+                        
+                        // Afficher un message de succès
+                        showToast('Musique ajoutée avec succès!', 'success');
+                    }
+                }
+            });
+
+            // Mettre à jour la liste des sessions lorsque la modal est ouverte
+            document.getElementById('submitMusicModal').addEventListener('shown.bs.modal', function() {
+                populateSessionSelect();
+            });
+        }
+
+        // Ouvrir la modal pour soumettre une musique
+        function openSubmitMusicModal(sessionId = null) {
+            const modal = new bootstrap.Modal(document.getElementById('submitMusicModal'));
+            
+            // Si un sessionId est fourni, pré-sélectionner cette session
+            if (sessionId) {
+                populateSessionSelect(sessionId);
+            }
+            
+            modal.show();
+        }
+
+        // Afficher un toast de notification
+        function showToast(message, type = 'success') {
+            const toastContainer = document.querySelector('.toast-container');
+            
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type} show align-items-center`;
+            toast.setAttribute('role', 'alert');
+            toast.setAttribute('aria-live', 'assertive');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Supprimer le toast après 3 secondes
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
