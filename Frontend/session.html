@@ -1,50 +1,155 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Sessions</title>
-  <style>
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background: #f4f4f4;
-    }
-    .song-list {
-      margin-top: 10px;
-      padding-left: 20px;
-    }
-    .song-input {
-      margin-top: 5px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navbar avec logo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+     <link rel="stylesheet" href="session.css">
 </head>
 <body>
-  <h1>Bienvenue 🎶</h1>
-  <p id="welcome">Connexion en cours...</p>
+    <nav class="navbar navbar-expand-lg" role="navigation" aria-label="Navigation principale">
+        <div class="container">
+            <a class="navbar-brand" href="#" aria-label="MY DiGiTAL SCHOOL - Accueil">
+                <img src="https://z-cdn-media.chatglm.cn/files/37c1e087-aa1d-4918-81cb-11bcc74d0a26_logoMDS.png?auth_key=1790605284-85f1a166f0a24b78adce4a94fea0889e-0-d8629fc9259d1612cce23d9b81641493" alt="Logo MY DiGiTAL SCHOOL">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Basculer la navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Menu centré -->
+                <ul class="navbar-nav navbar-center">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" aria-current="page"><i class="bi bi-calendar-event me-1" aria-hidden="true"></i> Sessions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-bar-chart me-1" aria-hidden="true"></i> Résultats</a>
+                    </li>
+                </ul>
+                <!-- Menu Compte à droite -->
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-person-circle me-1" aria-hidden="true"></i> Compte</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-  <h2>Liste des sessions</h2>
-  <table id="sessions-table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Sujet</th>
-        <th>Professeur</th>
-        <th>Promotion</th>
-        <th>Salle</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+    <div class="container mt-5">
+        <!-- Section d'introduction -->
+        <section class="intro-section" aria-labelledby="intro-heading">
+            <h1 id="intro-heading" class="intro-title">Session de Vote Musical</h1>
+            <p class="intro-text">
+                Proposez et votez pour vos morceaux de musique préférés dans les sessions de cours. 
+                Participez activement à la sélection musicale qui rythmera votre expérience d'apprentissage.
+            </p>
+            
+            <div class="intro-features">
+                <div class="feature-item">
+                    <i class="bi bi-music-note-list feature-icon" aria-hidden="true"></i>
+                    <span class="feature-text">Proposez vos titres préférés</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-hand-thumbs-up feature-icon" aria-hidden="true"></i>
+                    <span class="feature-text">Votez pour les morceaux que vous aimez</span>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-trophy feature-icon" aria-hidden="true"></i>
+                    <span class="feature-text">Découvrez les titres les plus populaires</span>
+                </div>
+            </div>
+        </section>
 
+        <!-- En-tête de page -->
+        <div class="page-header">
+            <h2 class="page-title">Sessions de Vote</h2>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#submitMusicModal" aria-label="Soumettre une nouvelle musique">
+                <i class="bi bi-plus-circle me-1" aria-hidden="true"></i> Soumettre une musique
+            </button>
+        </div>
+
+        <!-- Tableau des sessions -->
+        <div class="table-container">
+            <div class="table-responsive">
+                <!-- Spinner de chargement -->
+                <div id="loadingSpinner" class="spinner-container">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Chargement...</span>
+                    </div>
+                </div>
+                
+                <table class="table d-none" aria-label="Sessions de vote musicales">
+                    <thead>
+                        <tr>
+                            <th scope="col">ID</th>
+                            <th scope="col">Sujet</th>
+                            <th scope="col">Professeur</th>
+                            <th scope="col">Promotion</th>
+                            <th scope="col">Salle</th>
+                            <th scope="col">Morceaux</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionTableBody">
+                        <!-- Les lignes seront générées par JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Pagination des sessions">
+                <ul class="pagination" id="pagination">
+                    <!-- Les boutons de pagination seront générés par JavaScript -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Modal pour soumettre une musique -->
+    <div class="modal fade" id="submitMusicModal" tabindex="-1" aria-labelledby="submitMusicModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="submitMusicModalLabel">Soumettre une nouvelle musique</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="submitMusicForm">
+                        <div class="mb-3">
+                            <label for="sessionSelect" class="form-label">Session</label>
+                            <select class="form-select" id="sessionSelect" aria-required="true" required>
+                                <!-- Les options seront générées par JavaScript -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="musicTitle" class="form-label">Titre</label>
+                            <input type="text" class="form-control" id="musicTitle" aria-required="true" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="musicArtist" class="form-label">Artiste</label>
+                            <input type="text" class="form-control" id="musicArtist" aria-required="true" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="submitMusicBtn">Soumettre</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conteneur pour les toasts -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" aria-live="polite" aria-atomic="true"></div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
   <script src="session.js"></script>
 </body>
 </html>
