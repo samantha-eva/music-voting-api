@@ -4,7 +4,8 @@ const {
   getSessions,
   getSessionsToday,
   getSessionById,
-  getSessionsByDate
+  getSessionsByDate,
+  getTracksCountBySession
 } = require('../controllers/sessions');
 
 const authMiddleware = require('../middleware/auth');
@@ -20,5 +21,8 @@ router.get('/:id', getSessionById);
 
 // GET /api/sessions/by-date/:date
 router.get('/by-date/:date', getSessionsByDate);
+
+// GET /api/sessions/by-tracks-count
+router.get('/sessions/tracks-count', getTracksCountBySession);
 
 module.exports = router;
