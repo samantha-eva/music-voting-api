@@ -37,7 +37,7 @@
         }
 
         .navbar-brand img {
-            height: 70px; /* Augmenté de 40px à 70px pour une meilleure visibilité */
+            height: 95px; /* Augmenté de 40px à 70px pour une meilleure visibilité */
             width: auto;
             transition: transform 0.3s ease;
         }

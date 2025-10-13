@@ -4,16 +4,50 @@
         const itemsPerPage = 3;
         let userVotes = JSON.parse(localStorage.getItem('userVotes')) || {};
         let musicsBySession = {}; // Cache pour les musiques par session
+        let userInfo = null
         
         // Récupérer le token d'authentification (supposé être stocké dans localStorage)
         const getToken = () => {
             return localStorage.getItem('token') || '';
         };
 
+        // Récupérer les informations de l'utilisateur depuis l'API
+        async function fetchUserInfo() {
+            try {
+                const token = getToken();
+                if (!token) {
+                    console.error('Token non trouvé');
+                    return null;
+                }
+
+                const response = await fetch("http://localhost:3000/api/auth/me", {
+                    headers: { 
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+                }
+
+                const userData = await response.json();
+                
+                // Stocker les informations de l'utilisateur dans le localStorage
+                localStorage.setItem('userInfo', JSON.stringify(userData));
+                
+                return userData;
+            } catch (error) {
+                console.error('Erreur lors de la récupération des informations utilisateur:', error);
+                return null;
+            }
+        }
+
         // Charger les sessions depuis l'API
         async function loadSessions() {
             try {
                 const token = getToken();
+                console.log('token user current:', token)
                 if (!token) {
                     showToast('Veuillez vous connecter pour accéder aux sessions', 'warning');
                     return;
@@ -180,7 +214,13 @@
         }
 
         // Initialisation
-        document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', async function() {
+            // Charger les informations de l'utilisateur
+            userInfo = await fetchUserInfo();
+             if (userInfo) {
+                document.getElementById('username').textContent = userInfo.firstname;
+            }
+
             // Charger les sessions depuis l'API
             loadSessions();
             setupEventListeners();
