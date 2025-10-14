@@ -289,12 +289,12 @@ function renderTable() {
         const row = document.createElement('tr');
         row.innerHTML = `
 
-            <td><span class="badge bg-primary">${session.id}</span></td>
+            <td><span class="badge bg-dark">${session.id}</span></td>
             <td><strong>${session.subject}</strong></td>
             <td>${session.teacher}</td>
             <td><span class="badge bg-light text-dark">${session.promotion}</span></td>
             <td><span class="badge bg-light text-dark">${session.classroom}</span></td>
-            <td><span class="badge bg-success">${musicsBySession[session.id] ? musicsBySession[session.id].length : 0}</span></td>
+            <td><span class="badge bg-dark">${musicsBySession[session.id] ? musicsBySession[session.id].length : 0}</span></td>
 
             <td>
                 <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#collapse${session.id}" aria-expanded="false" aria-controls="collapse${session.id}">
