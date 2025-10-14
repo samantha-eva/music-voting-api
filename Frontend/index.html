@@ -6,18 +6,36 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="login-container">
-    <h1>🎵 Music Voting</h1>
-    <p>Connectez-vous avec votre email scolaire</p>
-
-    <form id="login-form">
-      <input type="email" id="email" placeholder="Votre email" required>
-      <button type="submit">Se connecter</button>
-    </form>
-
-    <p id="message"></p>
-  </div>
-
-  <script src="app.js"></script>
+      <div class="container">
+        <div class="logo">
+          <img src="images/logoMDS.png">
+        </div>
+          
+        <h1>Connectez-vous à votre compte</h1>
+          
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <div class="input-container">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" name="email" placeholder="Entrez votre adresse email" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn" id="loginBtn">
+                Recevoir le lien de connexion
+            </button>
+        </form>
+          
+        <div class="message" id="message">
+            <i class="message-icon"></i>
+            <span class="message-text"></span>
+        </div>
+          
+        <p class="info-text">
+            Nous vous enverrons un lien par e-mail. Cliquez dessus pour vous connecter sans mot de passe.
+        </p>
+      </div>
+<script src="app.js"></script>
 </body>
 </html>
