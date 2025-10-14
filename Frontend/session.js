@@ -288,20 +288,14 @@ function renderTable() {
     paginatedSessions.forEach(session => {
         const row = document.createElement('tr');
         row.innerHTML = `
-<<<<<<< HEAD
-            <td><span class="badge bg-dark">${session.id}</span></td>
-=======
+
             <td><span class="badge bg-primary">${session.id}</span></td>
->>>>>>> e7f213d8f5f4d238c151a189121d5778c17b1966
             <td><strong>${session.subject}</strong></td>
             <td>${session.teacher}</td>
             <td><span class="badge bg-light text-dark">${session.promotion}</span></td>
             <td><span class="badge bg-light text-dark">${session.classroom}</span></td>
-<<<<<<< HEAD
-            <td><span class="badge bg-dark">${musicsBySession[session.id] ? musicsBySession[session.id].length : 0}</span></td>
-=======
             <td><span class="badge bg-success">${musicsBySession[session.id] ? musicsBySession[session.id].length : 0}</span></td>
->>>>>>> e7f213d8f5f4d238c151a189121d5778c17b1966
+
             <td>
                 <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#collapse${session.id}" aria-expanded="false" aria-controls="collapse${session.id}">
                     <i class="bi bi-eye me-1" aria-hidden="true"></i> Voir
