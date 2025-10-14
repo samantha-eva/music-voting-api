@@ -164,7 +164,6 @@ function displayMusics(sessionId, musics) {
                     <div class="music-artist">${music.artist}</div>
                 </div>
                 <div>
-                    <span class="vote-badge">${music.votes || 0} votes</span>
                     <button class="btn btn-sm btn-primary vote-btn ms-2" 
                             aria-label="Voter pour ${music.title} de ${music.artist}">
                         <i class="bi bi-hand-thumbs-up me-1" aria-hidden="true"></i> Voter
