@@ -5,6 +5,8 @@ const itemsPerPage = 3;
 let userVotes = {}; // Stockage en mémoire au lieu de localStorage
 let musicsBySession = {}; // Cache pour les musiques par session
 let userInfo = null;
+let votedSessions = new Set(); // Sessions où l'utilisateur a déjà vot
+let currentVoteData = null; // Données du vote en cours de confirmation
 
 // Récupérer le token d'authentification depuis localStorage
 const getToken = () => {
@@ -131,6 +133,28 @@ async function loadMusicsForSession(sessionId) {
         
         // Stocker les musiques pour cette session
         musicsBySession[sessionId] = musics;
+
+        // Vérifier si l'utilisateur a déjà voté 
+     
+        if (userInfo) {
+            try {
+                const votesResponse = await fetch(`http://localhost:3000/api/votes/user/${userInfo.id}/session/${sessionId}`, {
+                    headers: { 
+                        Authorization: `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (votesResponse.ok) {
+                    const data = await votesResponse.json();
+                    if (data.hasVoted) {
+                        votedSessions.add(sessionId);
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur lors de la vérification des votes:', error);
+            }
+        }
         
         // Afficher les musiques
         displayMusics(sessionId, musics);
@@ -165,12 +189,32 @@ function displayMusics(sessionId, musics) {
                 </div>
                 <div>
                     <button class="btn btn-sm btn-primary vote-btn ms-2" 
-                            aria-label="Voter pour ${music.title} de ${music.artist}">
+                        data-track-id="${music.id}"
+                        data-session-id="${sessionId}"
+                        data-title="${music.title}"
+                        data-artist="${music.artist}"
+                        aria-label="Voter pour ${music.title} de ${music.artist}">
                         <i class="bi bi-hand-thumbs-up me-1" aria-hidden="true"></i> Voter
                     </button>
                 </div>
             </div>
         `).join('');
+         // Ajouter les événements de vote
+        const voteButtons = container.querySelectorAll('.vote-btn');
+        voteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const trackId = this.getAttribute('data-track-id');
+                const sessionId = this.getAttribute('data-session-id');
+                const title = this.getAttribute('data-title');
+                const artist = this.getAttribute('data-artist');
+                showConfirmVoteModal(trackId, sessionId, title, artist, this);
+            });
+        });
+        
+        // Si l'utilisateur a déjà voté pour cette session, désactiver les boutons
+        if (votedSessions.has(sessionId)) {
+            disableVotingButtons(sessionId);
+        }
     }
 }
 
@@ -378,6 +422,7 @@ function changePage(page) {
 
 // Configuration des écouteurs d'événements
 function setupEventListeners() {
+    console.log('event listener');
     // Gestion du bouton de soumission
     document.getElementById('submitMusicBtn').addEventListener('click', async function() {
         const title = document.getElementById('musicTitle').value;
@@ -431,6 +476,26 @@ function setupEventListeners() {
         // Réactiver le select au cas où il serait désactivé
         document.getElementById('sessionSelect').disabled = false;
     });
+
+     // Gérer la confirmation du vote
+    document.getElementById('confirmVoteBtn').addEventListener('click', function() {
+        console.log('ccurent vote');
+        if (currentVoteData) {
+            // Fermer la modal de confirmation
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmVoteModal'));
+            modal.hide();
+            
+            // Exécuter le vote
+            voteForTrack(
+                currentVoteData.trackId, 
+                currentVoteData.sessionId, 
+                currentVoteData.buttonElement
+            );
+            
+            // Réinitialiser les données
+            currentVoteData = null;
+        }
+    });
 }
 
 // Ouvrir la modal pour soumettre une musique
@@ -448,6 +513,100 @@ function openSubmitMusicModal(sessionId = null) {
     }
     
     modal.show();
+}
+
+
+// Fonction pour afficher la modal de confirmation
+function showConfirmVoteModal(trackId, sessionId, title, artist, buttonElement) {
+    // Vérifier si l'utilisateur a déjà voté pour cette session
+    if (votedSessions.has(sessionId)) {
+        showToast('Vous avez déjà voté pour cette session', 'warning');
+        return;
+    }
+
+    // Stocker les données du vote
+    currentVoteData = {
+        trackId: trackId,
+        sessionId: sessionId,
+        buttonElement: buttonElement
+    };
+
+    // Mettre à jour le contenu de la modal
+    document.getElementById('confirmMusicTitle').textContent = title;
+    document.getElementById('confirmMusicArtist').textContent = artist;
+
+    // Afficher la modal
+    const modal = new bootstrap.Modal(document.getElementById('confirmVoteModal'));
+    modal.show();
+}
+
+// Fonction pour voter pour un morceau
+async function voteForTrack(trackId, sessionId, buttonElement) {
+    console.log('je suis dans vote tracks',userInfo.id);
+    try {
+        const authToken = getToken();
+        if (!authToken) {
+            showToast('Veuillez vous connecter pour voter', 'warning');
+            return;
+        }
+
+        const response = await fetch("http://localhost:3000/api/votes", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${authToken}`
+            },
+            body: JSON.stringify({
+                userId: userInfo.id,
+                trackId: trackId,
+                sessionId: sessionId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Erreur ${response.status}: ${response.statusText}`);
+        }
+
+        const voteData = await response.json();
+        
+        // Marquer la session comme votée
+        votedSessions.add(sessionId);
+        
+        // Désactiver tous les boutons de vote de cette session
+        disableVotingButtons(sessionId);
+        
+        // Mettre à jour le badge de votes
+        updateVoteBadge(buttonElement);
+        
+        showToast('Vote enregistré avec succès!', 'success');
+        
+    } catch (error) {
+        console.error('Erreur lors du vote:', error);
+        showToast('Erreur lors du vote: ' + error.message, 'warning');
+    }
+}
+
+// Fonction pour désactiver les boutons de vote d'une session
+function disableVotingButtons(sessionId) {
+    const musicListContainer = document.getElementById(`music-list-${sessionId}`);
+    if (musicListContainer) {
+        const voteButtons = musicListContainer.querySelectorAll('.vote-btn');
+        voteButtons.forEach(button => {
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-check-circle me-1" aria-hidden="true"></i> Déjà voté';
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-secondary');
+        });
+    }
+}
+
+// Fonction pour mettre à jour le badge de votes
+function updateVoteBadge(buttonElement) {
+    const badge = buttonElement.nextElementSibling;
+    if (badge && badge.classList.contains('vote-badge')) {
+        const currentVotes = parseInt(badge.textContent) || 0;
+        badge.textContent = `${currentVotes + 1} votes`;
+    }
 }
 
 // Afficher un toast de notification
