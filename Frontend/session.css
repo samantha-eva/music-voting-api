@@ -1,0 +1,530 @@
+  :root {
+            --primary-color: #21929E;
+            --primary-light: #21929E;
+            --primary-dark: #21929E;
+            --secondary-color: #f8fafc;
+            --text-color: #2B2625;
+            --light-gray: #f1f5f9;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --accent-color: #21929E;
+            --accent-light: #21929E;
+        }
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #21929E 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .navbar {
+            background-color: white !important;
+            box-shadow: var(--shadow-sm);
+            padding: 1rem 0; /* Augmenté pour accommoder le logo plus grand */
+        }
+
+        .navbar-brand {
+            padding: 0;
+            margin-right: 2rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-brand img {
+            height: 72px;
+            width: auto;
+            transition: transform 0.3s ease;
+            
+        }
+
+        .navbar-brand img:hover {
+            transform: scale(1.05); /* Léger effet de zoom au survol pour plus d'accessibilité */
+        }
+
+        .nav-link {
+            color: var(--text-color) !important;
+            font-weight: 600; /* Augmenté de 500 à 600 pour une meilleure lisibilité */
+            margin: 0 0.75rem; /* Augmenté pour plus d'espace entre les liens */
+            border-radius: 0.375rem;
+            padding: 0.75rem 1.25rem !important; /* Augmenté pour de plus grandes zones de clic */
+            transition: all 0.2s ease;
+            font-size: 1.05rem; /* Légèrement augmenté pour une meilleure lisibilité */
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--secondary-color);
+            color: var(--primary-color) !important;
+        }
+
+        /* Centrage des éléments dans la navbar */
+        .navbar-collapse {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .navbar-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        @media (max-width: 991.98px) {
+            .navbar-center {
+                position: static;
+                transform: none;
+                margin: 1.5rem 0; /* Augmenté pour plus d'espace sur mobile */
+            }
+            
+            .navbar-brand img {
+                height: 60px; /* Légèrement réduit sur mobile mais toujours grand */
+            }
+        }
+
+        /* Contenu principal */
+        .container {
+            max-width: 1200px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .page-title {
+            font-size: 2.25rem; /* Augmenté pour une meilleure visibilité */
+            font-weight: 700;
+            color: #1e293b;
+            position: relative;
+            display: inline-block;
+        }
+
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 2px;
+        }
+
+        /* Tableau */
+        .table-container {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            color: white;
+        }
+
+        .table th {
+            font-weight: 700; /* Augmenté pour une meilleure lisibilité */
+            color: white;
+            border: none;
+            padding: 1.2rem;
+            font-size: 0.95rem; /* Augmenté pour une meilleure lisibilité */
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table td {
+            padding: 1.2rem;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+            font-size: 1rem; /* Augmenté pour une meilleure lisibilité */
+        }
+
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8fafc;
+            transform: translateY(-1px);
+        }
+
+        .collapse-row {
+            background-color: var(--light-gray) !important;
+        }
+
+        /* Collapse */
+        .collapse-content {
+            padding: 2rem;
+        }
+
+        .music-list {
+            max-height: 280px;
+            overflow-y: auto;
+            margin-bottom: 1.5rem;
+            padding-right: 0.5rem;
+        }
+
+        .music-list::-webkit-scrollbar {
+            width: 8px; /* Augmenté pour une meilleure accessibilité */
+        }
+
+        .music-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .music-list::-webkit-scrollbar-thumb {
+            background: #cdd5e1;
+            border-radius: 10px;
+        }
+
+        .music-list::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .music-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 1.4rem; /* Augmenté pour plus d'espace */
+            background-color: rgb(36, 36, 36);
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .music-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .music-info {
+            flex: 1;
+        }
+
+        .music-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: #ffffff;
+            font-size: 1.1rem; /* Augmenté pour une meilleure lisibilité */
+        }
+
+        .music-artist {
+            font-size: 0.95rem; /* Augmenté pour une meilleure lisibilité */
+            color: #64748b;
+        }
+
+        .vote-badge {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            color: white;
+            font-size: 0.85rem; /* Augmenté pour une meilleure lisibilité */
+            font-weight: 600;
+            padding: 0.4rem 0.75rem; /* Augmenté pour plus d'espace */
+            border-radius: 9999px;
+            margin-left: 0.75rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Boutons */
+        .btn {
+            font-weight: 600; /* Augmenté pour une meilleure lisibilité */
+            border-radius: 0.5rem;
+            padding: 0.7rem 1.3rem; /* Augmenté pour plus d'espace */
+            border: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            font-size: 1rem; /* Augmenté pour une meilleure lisibilité */
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            background-color: transparent;
+            border: 1.5px solid #c7d2fe; /* Augmenté pour une meilleure visibilité */
+        }
+
+        .btn-outline-primary:hover {
+            background-color: #e0e7ff;
+            border-color: #a5b4fc;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: linear-gradient(90deg, #21929E, #21929E);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(90deg, #059669, #10b981);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem; /* Augmenté pour plus d'espace */
+            font-size: 0.95rem; /* Augmenté pour une meilleure lisibilité */
+        }
+
+        .vote-btn {
+            padding: 0.45rem 0.9rem;
+            font-size: 0.85rem; /* Augmenté pour une meilleure lisibilité */
+        }
+
+        .vote-btn:disabled {
+            background-color: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Modal */
+        .modal-content {
+            border-radius: 1rem;
+            border: none;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 600;
+            color: white;
+            font-size: 1.4rem; /* Augmenté pour une meilleure lisibilité */
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 0.75rem;
+            border: 1.5px solid #d1d5db; /* Augmenté pour une meilleure visibilité */
+            padding: 0.9rem; /* Augmenté pour plus d'espace */
+            font-size: 1.05rem; /* Augmenté pour une meilleure lisibilité */
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-label {
+            font-weight: 600; /* Augmenté pour une meilleure lisibilité */
+            color: #4b5563;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem; /* Augmenté pour une meilleure lisibilité */
+        }
+
+        /* Pagination */
+        .pagination {
+            margin-top: 2.5rem;
+        }
+
+        .page-link {
+            color: var(--primary-color);
+            border: 1.5px solid var(--border-color); /* Augmenté pour une meilleure visibilité */
+            padding: 0.7rem 1rem; /* Augmenté pour plus d'espace */
+            margin: 0 0.125rem;
+            border-radius: 0.5rem;
+            font-weight: 600; /* Augmenté pour une meilleure lisibilité */
+            transition: all 0.2s ease;
+            font-size: 1rem; /* Augmenté pour une meilleure lisibilité */
+        }
+
+        .page-item.active .page-link {
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .page-link:hover {
+            background-color: #f1f5f9;
+            border-color: #c7d2fe;
+            transform: translateY(-1px);
+        }
+
+        /* Toast */
+        .toast-container {
+            z-index: 1050;
+        }
+
+        .toast {
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow-lg);
+            border: none;
+            overflow: hidden;
+        }
+
+        .toast-success {
+            background: linear-gradient(90deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            font-size: 1.05rem; /* Augmenté pour une meilleure lisibilité */
+        }
+
+        .toast-warning {
+            background: linear-gradient(90deg, #fef3c7, #fde68a);
+            color: #92400e;
+            font-size: 1.05rem; /* Augmenté pour une meilleure lisibilité */
+        }
+
+        /* Section header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-weight: 600;
+            font-size: 1.35rem; /* Augmenté pour une meilleure lisibilité */
+            color: #1e293b;
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-color), var(--accent-light));
+            border-radius: 2px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+            }
+
+            .table-responsive {
+                border-radius: 1rem;
+                overflow: hidden;
+            }
+
+            .music-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .vote-btn {
+                align-self: flex-end;
+            }
+
+            .page-title {
+                font-size: 1.85rem; /* Réduit sur mobile mais toujours grand */
+            }
+            
+            .navbar-brand img {
+                height: 50px; /* Réduit sur mobile mais toujours visible */
+            }
+            
+            .intro-section {
+                padding: 2rem 1.5rem;
+            }
+            
+            .intro-title {
+                font-size: 2rem;
+            }
+            
+            .intro-text {
+                font-size: 1.1rem;
+            }
+            
+            .intro-features {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .table tbody tr {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Card effect */
+        .card-effect {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: var(--shadow-md);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .card-effect:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        /* Accessibilité supplémentaire */
+        .navbar-nav .nav-link:focus,
+        .btn:focus,
+        .form-control:focus,
+        .form-select:focus {
+            outline: 3px solid rgba(99, 102, 241, 0.5);
+            outline-offset: 2px;
+        }
+        
+        /* Augmentation du contraste pour une meilleure accessibilité */
+        .table th, .table td {
+            color: #1e293b; /* Couleur plus foncée pour un meilleur contraste */
+        }
+        
+        .music-title {
+            color: #ffffff; /* Couleur plus foncée pour un meilleur contraste */
+        }
+        
+        .music-artist {
+            color: #ffffff; /* Couleur plus foncée pour un meilleur contraste */
+        }

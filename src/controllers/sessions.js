@@ -71,9 +71,29 @@ const getSessionsByDate = async (req, res) => {
   }
 };
 
+// Récupérer le nombre de morceaux par session
+const getTracksCountBySession = async (req, res) => {
+  try {
+    const sessions = await prisma.session.findMany({
+      include: {
+        _count: {
+          select: { tracks: true },
+        },
+      },
+      orderBy: { id: 'asc' }, // optionnel : trie les sessions par id
+    });
+
+    res.json(sessions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erreur lors de la récupération du nombre de morceaux par session' });
+  }
+}
+
 module.exports = {
   getSessions,
   getSessionsToday,
   getSessionById,
   getSessionsByDate,
+  getTracksCountBySession
 };
