@@ -383,7 +383,7 @@ function setupPagination() {
     pagination.appendChild(nextLi);
 }
 
-// Changement page
+// Changement page pour la pagination
 function changePage(page) {
     const totalPages = Math.ceil(sessions.length / itemsPerPage);
     if (page >= 1 && page <= totalPages) {
