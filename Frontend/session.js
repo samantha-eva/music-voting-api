@@ -2,28 +2,28 @@
 let sessions = [];
 let currentPage = 1;
 const itemsPerPage = 3;
-let userVotes = {}; // Stockage en mémoire au lieu de localStorage
-let musicsBySession = {}; // Cache pour les musiques par session
+let userVotes = {};
+let musicsBySession = {};
 let userInfo = null;
+let votedSessions = new Set();
+let currentVoteData = null;
 
-// Récupérer le token d'authentification depuis localStorage
+// Récupérer le token d'authentification
 const getToken = () => {
-    // Pour la compatibilité avec votre application existante
-    // Si vous voulez utiliser le stockage en mémoire uniquement, modifiez cette fonction
     if (typeof localStorage !== 'undefined') {
         return localStorage.getItem('token') || '';
     }
     return '';
 };
 
-// Définir le token (à appeler lors de la connexion)
+// Définir le token
 const setToken = (newToken) => {
     if (typeof localStorage !== 'undefined') {
         localStorage.setItem('token', newToken);
     }
 };
 
-// Récupérer les informations de l'utilisateur depuis l'API
+// Récupérer les informations de l'utilisateur
 async function fetchUserInfo() {
     try {
         const authToken = getToken();
@@ -51,7 +51,7 @@ async function fetchUserInfo() {
     }
 }
 
-// Charger les sessions depuis l'API
+// Charger les sessions
 async function loadSessions() {
     try {
         const authToken = getToken();
@@ -74,11 +74,9 @@ async function loadSessions() {
 
         sessions = await response.json();
         
-        // Masquer le spinner et afficher le tableau
         document.getElementById('loadingSpinner').classList.add('d-none');
         document.querySelector('.table').classList.remove('d-none');
         
-        // Mettre à jour l'affichage
         renderTable();
         setupPagination();
         
@@ -88,12 +86,10 @@ async function loadSessions() {
     }
 }
 
-// Charger les musiques pour une session spécifique
+// Charger les musiques pour une session
 async function loadMusicsForSession(sessionId) {
-    // Si les musiques sont déjà chargées, on les affiche directement
     if (musicsBySession[sessionId]) {
         displayMusics(sessionId, musicsBySession[sessionId]);
-        return;
     }
 
     try {
@@ -103,9 +99,8 @@ async function loadMusicsForSession(sessionId) {
             return;
         }
 
-        // Afficher le spinner de chargement
         const musicListContainer = document.getElementById(`music-list-${sessionId}`);
-        if (musicListContainer) {
+        if (musicListContainer && !musicsBySession[sessionId]) {
             musicListContainer.innerHTML = `
                 <div class="music-loading">
                     <div class="spinner-border" role="status">
@@ -128,16 +123,39 @@ async function loadMusicsForSession(sessionId) {
         }
 
         const musics = await response.json();
-        
-        // Stocker les musiques pour cette session
         musicsBySession[sessionId] = musics;
+
+        // Vérifier si l'utilisateur a déjà voté AUJOURD'HUI (à chaque ouverture)
+        if (userInfo) {
+            try {
+                const votesResponse = await fetch(`http://localhost:3000/api/votes/user/${userInfo.id}/session/${sessionId}`, {
+                    headers: { 
+                        Authorization: `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (votesResponse.ok) {
+                    const data = await votesResponse.json();
+                    console.log('Vérification vote - hasVoted:', data.hasVoted);
+                    
+                    // Si l'utilisateur a voté aujourd'hui, désactiver TOUTES les sessions
+                    if (data.hasVoted) {
+                        sessions.forEach(s => votedSessions.add(s.id));
+                    } else {
+                        // Si pas de vote, réinitialiser votedSessions
+                        votedSessions.clear();
+                    }
+                }
+            } catch (error) {
+                console.error('Erreur lors de la vérification des votes:', error);
+            }
+        }
         
-        // Afficher les musiques
         displayMusics(sessionId, musics);
 
     } catch (error) {
         console.error('Erreur lors du chargement des musiques:', error);
-        // Afficher un message d'erreur dans le conteneur de la session
         const musicListContainer = document.getElementById(`music-list-${sessionId}`);
         if (musicListContainer) {
             musicListContainer.innerHTML = `
@@ -149,7 +167,7 @@ async function loadMusicsForSession(sessionId) {
     }
 }
 
-// Afficher les musiques pour une session
+// Afficher les musiques
 function displayMusics(sessionId, musics) {
     const container = document.getElementById(`music-list-${sessionId}`);
     if (!container) return;
@@ -165,15 +183,35 @@ function displayMusics(sessionId, musics) {
                 </div>
                 <div>
                     <button class="btn btn-sm btn-primary vote-btn ms-2" 
-                            aria-label="Voter pour ${music.title} de ${music.artist}">
+                        data-track-id="${music.id}"
+                        data-session-id="${sessionId}"
+                        data-title="${music.title}"
+                        data-artist="${music.artist}"
+                        aria-label="Voter pour ${music.title} de ${music.artist}">
                         <i class="bi bi-hand-thumbs-up me-1" aria-hidden="true"></i> Voter
                     </button>
                 </div>
             </div>
         `).join('');
+        
+        const voteButtons = container.querySelectorAll('.vote-btn');
+        voteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const trackId = this.getAttribute('data-track-id');
+                const sessionId = this.getAttribute('data-session-id');
+                const title = this.getAttribute('data-title');
+                const artist = this.getAttribute('data-artist');
+                showConfirmVoteModal(trackId, sessionId, title, artist, this);
+            });
+        });
+        
+        if (votedSessions.has(sessionId)) {
+            disableVotingButtons(sessionId);
+        }
     }
 }
 
+// Ajouter une musique à une session
 async function addMusicToSession(sessionId, title, artist) {
     try {
         const authToken = getToken();
@@ -199,21 +237,15 @@ async function addMusicToSession(sessionId, title, artist) {
 
         const newMusic = await response.json();
         
-        // Ajouter la nouvelle musique au cache
         if (musicsBySession[sessionId]) {
             musicsBySession[sessionId].push(newMusic);
-            // Rafraîchir l'affichage
             displayMusics(sessionId, musicsBySession[sessionId]);
         } else {
-            // Si le cache n'existe pas encore, on le crée
             musicsBySession[sessionId] = [newMusic];
-            // Rafraîchir l'affichage
             displayMusics(sessionId, musicsBySession[sessionId]);
         }
         
-        // Mettre à jour le compteur de morceaux dans le tableau
         renderTable();
-        
         return true;
     } catch (error) {
         console.error('Erreur lors de l\'ajout de la musique:', error);
@@ -224,25 +256,21 @@ async function addMusicToSession(sessionId, title, artist) {
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', async function() {
-    // Charger les informations de l'utilisateur
     userInfo = await fetchUserInfo();
     if (userInfo) {
         document.getElementById('username').textContent = userInfo.firstname;
     }
 
-    // Charger les sessions depuis l'API
     loadSessions();
     setupEventListeners();
 });
 
-// Remplir la liste déroulante des sessions
+// Remplir le select des sessions
 function populateSessionSelect(selectedSessionId = null, lockSession = false) {
     const sessionSelect = document.getElementById('sessionSelect');
     
-    // Réinitialiser le select
     sessionSelect.innerHTML = '';
     
-    // Ajouter l'option par défaut uniquement si aucune session n'est verrouillée
     if (!lockSession) {
         const defaultOption = document.createElement('option');
         defaultOption.value = '';
@@ -252,18 +280,15 @@ function populateSessionSelect(selectedSessionId = null, lockSession = false) {
         sessionSelect.appendChild(defaultOption);
     }
     
-    // Ajouter les sessions
     sessions.forEach(session => {
         const option = document.createElement('option');
         option.value = session.id;
         option.textContent = `${session.id} - ${session.subject}`;
         
-        // Pré-sélectionner si c'est la session demandée
         if (selectedSessionId && session.id === selectedSessionId) {
             option.selected = true;
         }
         
-        // Désactiver les autres options si la session est verrouillée
         if (lockSession && session.id !== selectedSessionId) {
             option.disabled = true;
         }
@@ -271,7 +296,6 @@ function populateSessionSelect(selectedSessionId = null, lockSession = false) {
         sessionSelect.appendChild(option);
     });
     
-    // Désactiver complètement le select si une session est verrouillée
     sessionSelect.disabled = lockSession;
 }
 
@@ -287,14 +311,12 @@ function renderTable() {
     paginatedSessions.forEach(session => {
         const row = document.createElement('tr');
         row.innerHTML = `
-
             <td><span class="badge bg-dark">${session.id}</span></td>
             <td><strong>${session.subject}</strong></td>
             <td>${session.teacher}</td>
             <td><span class="badge bg-light text-dark">${session.promotion}</span></td>
             <td><span class="badge bg-light text-dark">${session.classroom}</span></td>
             <td><span class="badge bg-dark">${musicsBySession[session.id] ? musicsBySession[session.id].length : 0}</span></td>
-
             <td>
                 <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#collapse${session.id}" aria-expanded="false" aria-controls="collapse${session.id}">
                     <i class="bi bi-eye me-1" aria-hidden="true"></i> Voir
@@ -303,7 +325,6 @@ function renderTable() {
         `;
         tbody.appendChild(row);
         
-        // Ligne de collapse
         const collapseRow = document.createElement('tr');
         collapseRow.className = 'collapse-row';
         collapseRow.innerHTML = `
@@ -330,7 +351,6 @@ function renderTable() {
         `;
         tbody.appendChild(collapseRow);
         
-        // Ajouter un écouteur d'événement pour charger les musiques lorsque le collapse est ouvert
         const collapseElement = document.getElementById(`collapse${session.id}`);
         collapseElement.addEventListener('shown.bs.collapse', function () {
             loadMusicsForSession(session.id);
@@ -338,20 +358,18 @@ function renderTable() {
     });
 }
 
-// Configuration de la pagination
+// Configuration pagination
 function setupPagination() {
     const pagination = document.getElementById('pagination');
     pagination.innerHTML = '';
     
     const totalPages = Math.ceil(sessions.length / itemsPerPage);
     
-    // Bouton précédent
     const prevLi = document.createElement('li');
     prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
     prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;" aria-label="Page précédente">Précédent</a>`;
     pagination.appendChild(prevLi);
     
-    // Numéros de page
     for (let i = 1; i <= totalPages; i++) {
         const li = document.createElement('li');
         li.className = `page-item ${i === currentPage ? 'active' : ''}`;
@@ -359,14 +377,13 @@ function setupPagination() {
         pagination.appendChild(li);
     }
     
-    // Bouton suivant
     const nextLi = document.createElement('li');
     nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
     nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;" aria-label="Page suivante">Suivant</a>`;
     pagination.appendChild(nextLi);
 }
 
-// Changement de page
+// Changement page pour la pagination
 function changePage(page) {
     const totalPages = Math.ceil(sessions.length / itemsPerPage);
     if (page >= 1 && page <= totalPages) {
@@ -376,9 +393,8 @@ function changePage(page) {
     }
 }
 
-// Configuration des écouteurs d'événements
+// Setup écouteurs d'événements
 function setupEventListeners() {
-    // Gestion du bouton de soumission
     document.getElementById('submitMusicBtn').addEventListener('click', async function() {
         const title = document.getElementById('musicTitle').value;
         const artist = document.getElementById('musicArtist').value;
@@ -389,58 +405,58 @@ function setupEventListeners() {
             return;
         }
         
-        // Désactiver le bouton pendant le traitement
         const submitBtn = document.getElementById('submitMusicBtn');
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> En cours...';
         
-        // Appeler l'API pour ajouter la musique
         const success = await addMusicToSession(sessionId, title, artist);
         
-        // Réactiver le bouton
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Soumettre';
         
         if (success) {
-            // Fermer la modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('submitMusicModal'));
             modal.hide();
-            
-            // Réinitialiser le formulaire
             document.getElementById('submitMusicForm').reset();
-            
-            // Afficher un message de succès
             showToast('Musique ajoutée avec succès!', 'success');
         }
     });
 
-    // Gérer l'ouverture de la modal depuis le bouton principal
     const mainSubmitBtn = document.querySelector('[data-bs-target="#submitMusicModal"]');
     if (mainSubmitBtn) {
         mainSubmitBtn.addEventListener('click', function() {
-            // Réinitialiser le formulaire et la liste des sessions
             document.getElementById('submitMusicForm').reset();
             populateSessionSelect(null, false);
         });
     }
 
-    // Gérer la fermeture de la modal
     document.getElementById('submitMusicModal').addEventListener('hidden.bs.modal', function() {
-        // Réinitialiser le formulaire
         document.getElementById('submitMusicForm').reset();
-        // Réactiver le select au cas où il serait désactivé
         document.getElementById('sessionSelect').disabled = false;
+    });
+
+    document.getElementById('confirmVoteBtn').addEventListener('click', function() {
+        if (currentVoteData) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmVoteModal'));
+            modal.hide();
+            
+            voteForTrack(
+                currentVoteData.trackId, 
+                currentVoteData.sessionId, 
+                currentVoteData.buttonElement
+            );
+            
+            currentVoteData = null;
+        }
     });
 }
 
-// Ouvrir la modal pour soumettre une musique
+// Ouvrir modal musique
 function openSubmitMusicModal(sessionId = null) {
     const modal = new bootstrap.Modal(document.getElementById('submitMusicModal'));
     
-    // Réinitialiser le formulaire
     document.getElementById('submitMusicForm').reset();
     
-    // Si un sessionId est fourni, pré-sélectionner et verrouiller cette session
     if (sessionId) {
         populateSessionSelect(sessionId, true);
     } else {
@@ -450,7 +466,79 @@ function openSubmitMusicModal(sessionId = null) {
     modal.show();
 }
 
-// Afficher un toast de notification
+// Afficher modal confirmation vote
+function showConfirmVoteModal(trackId, sessionId, title, artist, buttonElement) {
+    if (votedSessions.has(sessionId)) {
+        showToast('Vous avez déjà voté aujourd\'hui', 'warning');
+        return;
+    }
+
+    currentVoteData = {
+        trackId: trackId,
+        sessionId: sessionId,
+        buttonElement: buttonElement
+    };
+
+    document.getElementById('confirmMusicTitle').textContent = title;
+    document.getElementById('confirmMusicArtist').textContent = artist;
+
+    const modal = new bootstrap.Modal(document.getElementById('confirmVoteModal'));
+    modal.show();
+}
+
+// Voter pour un morceau
+async function voteForTrack(trackId, sessionId, buttonElement) {
+    try {
+        const authToken = getToken();
+        if (!authToken) {
+            showToast('Veuillez vous connecter pour voter', 'warning');
+            return;
+        }
+
+        const response = await fetch("http://localhost:3000/api/votes", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${authToken}`
+            },
+            body: JSON.stringify({
+                userId: userInfo.id,
+                trackId: trackId,
+                sessionId: sessionId
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Erreur ${response.status}: ${response.statusText}`);
+        }
+
+        votedSessions.add(sessionId);
+        disableVotingButtons(sessionId);
+        
+        showToast('Vote enregistré avec succès!', 'success');
+        
+    } catch (error) {
+        console.error('Erreur lors du vote:', error);
+        showToast('Erreur lors du vote: ' + error.message, 'warning');
+    }
+}
+
+// Désactiver boutons vote
+function disableVotingButtons(sessionId) {
+    const musicListContainer = document.getElementById(`music-list-${sessionId}`);
+    if (musicListContainer) {
+        const voteButtons = musicListContainer.querySelectorAll('.vote-btn');
+        voteButtons.forEach(button => {
+            button.disabled = true;
+            button.innerHTML = '<i class="bi bi-check-circle me-1" aria-hidden="true"></i> Déjà voté';
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-secondary');
+        });
+    }
+}
+
+// Afficher toast notification
 function showToast(message, type = 'success') {
     const toastContainer = document.querySelector('.toast-container');
     
@@ -469,7 +557,6 @@ function showToast(message, type = 'success') {
     
     toastContainer.appendChild(toast);
     
-    // Supprimer le toast après 3 secondes
     setTimeout(() => {
         toast.remove();
     }, 3000);

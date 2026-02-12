@@ -126,6 +126,39 @@
         </div>
     </div>
 
+    <!-- Modal de confirmation de vote -->
+    <div class="modal fade" id="confirmVoteModal" tabindex="-1" aria-labelledby="confirmVoteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmVoteModalLabel">Confirmer votre vote</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="confirm-music">
+                        <div class="confirm-music-icon">
+                            <i class="bi bi-music-note-beamed"></i>
+                        </div>
+                        <div class="confirm-music-info">
+                            <h5 id="confirmMusicTitle">Titre de la musique</h5>
+                            <p id="confirmMusicArtist">Artiste</p>
+                        </div>
+                    </div>
+                    <p>Êtes-vous sûr de vouloir voter pour cette musique ?<br>
+                    <strong>Note:</strong> Vous ne pourrez voter qu'une seule fois par session.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="confirmVoteBtn">Confirmer le vote</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
     <!-- Conteneur pour les toasts -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" aria-live="polite" aria-atomic="true"></div>
 
